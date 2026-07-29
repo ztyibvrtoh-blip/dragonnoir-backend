@@ -1,6 +1,10 @@
 const express = require("express");
 
 const app = express();
+
+// قراءة بيانات JSON القادمة من الموقع
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000;
 
 // استيراد المسارات
