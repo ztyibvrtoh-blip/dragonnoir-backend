@@ -26,10 +26,14 @@ const getServers = (req, res) => {
 
 // إنشاء سيرفر جديد
 const createServer = (req, res) => {
+  const { name, version, type, cracked } = req.body;
+
   const newServer = {
     id: servers.length + 1,
-    name: `Server ${servers.length + 1}`,
-    version: "1.21.1",
+    name: name || `Server ${servers.length + 1}`,
+    version: version || "1.21.1",
+    type: type || "Java",
+   cracked: cracked ?? false,
     status: "offline",
     players: 0
   };
@@ -41,7 +45,6 @@ const createServer = (req, res) => {
     server: newServer
   });
 };
-
 module.exports = {
   getApiInfo,
   getServers,
