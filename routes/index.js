@@ -1,13 +1,8 @@
 const express = require("express");
-
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    name: "DRAGONNOIR API",
-    version: "1.0.0",
-    status: "online"
-  });
-});
+const { getApiInfo } = require("../controllers/serverController");
+
+router.get("/", getApiInfo);
 
 module.exports = router;
