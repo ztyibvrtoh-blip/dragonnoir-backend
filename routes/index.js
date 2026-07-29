@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const { getServers } = require("../controllers/serverController");
+const { getApiInfo, getServers } = require("../controllers/serverController");
 
-router.get("/", getServers);
+// الصفحة الرئيسية
+router.get("/", getApiInfo);
+
+// قائمة السيرفرات
+router.get("/servers", getServers);
 
 module.exports = router;
