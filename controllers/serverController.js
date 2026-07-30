@@ -74,8 +74,19 @@ const createServer = (req, res) => {
   });
 };
 
+// عرض مجلدات السيرفرات الموجودة على Railway
+const getServerFolders = (req, res) => {
+  if (!fs.existsSync(serversFolder)) {
+    return res.json([]);
+  }
+
+  const folders = fs.readdirSync(serversFolder);
+  res.json(folders);
+};
+
 module.exports = {
   getApiInfo,
   getServers,
   createServer,
+  getServerFolders,
 };
