@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 
 const dataFile = path.join(__dirname, "../data/servers.json");
 const serversFolder = path.join(__dirname, "../servers");
@@ -44,7 +45,7 @@ const getServerFolders = (req, res) => {
 };
 
 // إنشاء سيرفر
-const createServer = (req, res) => {
+const createServer = async (req, res) => {
   const servers = loadServers();
 
   const { name, version, type, cracked } = req.body;
@@ -89,6 +90,19 @@ enable-command-block=true`
     );
   }
 
+  // جلب معلومات الإصدار من PaperMC
+  let paperInfo = null;
+
+  try {
+    const response = await axios.get(
+      `https://api.papermc.io/v2/projects/paper/versions/${version || "1.21.1"}`
+    );
+
+    paperInfo = response.data;
+  } catch (err) {
+    console.log("PaperMC API Error:", err.message);
+  }
+
   const newServer = {
     id: servers.length + 1,
     name: serverName,
@@ -104,6 +118,7 @@ enable-command-block=true`
 
   res.status(201).json({
     message: "Server created successfully!",
+    paper: paperInfo,
     server: newServer
   });
 };
