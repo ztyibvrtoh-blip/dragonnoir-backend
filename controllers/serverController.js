@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const dataFile = path.join(__dirname, "../data/servers.json");
+const serversFolder = path.join(__dirname, "../servers");
 
 // قراءة السيرفرات من الملف
 const loadServers = () => {
@@ -40,9 +41,23 @@ const createServer = (req, res) => {
 
   const { name, version, type, cracked } = req.body;
 
+  const serverName = name || `Server ${servers.length + 1}`;
+
+  // إنشاء مجلد servers إذا لم يكن موجوداً
+  if (!fs.existsSync(serversFolder)) {
+    fs.mkdirSync(serversFolder);
+  }
+
+  // إنشاء مجلد خاص بالسيرفر
+  const serverPath = path.join(serversFolder, serverName);
+
+  if (!fs.existsSync(serverPath)) {
+    fs.mkdirSync(serverPath);
+  }
+
   const newServer = {
     id: servers.length + 1,
-    name: name || `Server ${servers.length + 1}`,
+    name: serverName,
     version: version || "1.21.1",
     type: type || "Java",
     cracked: cracked ?? false,
