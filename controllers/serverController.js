@@ -14,7 +14,7 @@ const loadServers = () => {
   return JSON.parse(data);
 };
 
-// حفظ السيرفرات في الملف
+// حفظ السيرفرات
 const saveServers = (servers) => {
   fs.writeFileSync(dataFile, JSON.stringify(servers, null, 2));
 };
@@ -29,10 +29,9 @@ const getApiInfo = (req, res) => {
   });
 };
 
-// عرض جميع السيرفرات
+// عرض السيرفرات
 const getServers = (req, res) => {
-  const servers = loadServers();
-  res.json(servers);
+  res.json(loadServers());
 };
 
 // عرض مجلدات السيرفرات
@@ -41,11 +40,10 @@ const getServerFolders = (req, res) => {
     return res.json([]);
   }
 
-  const folders = fs.readdirSync(serversFolder);
-  res.json(folders);
+  res.json(fs.readdirSync(serversFolder));
 };
 
-// إنشاء سيرفر جديد
+// إنشاء سيرفر
 const createServer = (req, res) => {
   const servers = loadServers();
 
@@ -53,19 +51,42 @@ const createServer = (req, res) => {
 
   const serverName = name || `Server ${servers.length + 1}`;
 
-  // إنشاء مجلد servers إذا لم يكن موجوداً
+  // إنشاء مجلد servers
   if (!fs.existsSync(serversFolder)) {
     fs.mkdirSync(serversFolder, { recursive: true });
   }
 
-  // إنشاء مجلد خاص بالسيرفر
   const serverPath = path.join(serversFolder, serverName);
-
-  let folderCreated = false;
 
   if (!fs.existsSync(serverPath)) {
     fs.mkdirSync(serverPath, { recursive: true });
-    folderCreated = true;
+  }
+
+  // إنشاء المجلدات الأساسية
+  ["world", "plugins", "logs"].forEach(folder => {
+    const folderPath = path.join(serverPath, folder);
+
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
+  });
+
+  // إنشاء eula.txt
+  const eulaPath = path.join(serverPath, "eula.txt");
+  if (!fs.existsSync(eulaPath)) {
+    fs.writeFileSync(eulaPath, "eula=true");
+  }
+
+  // إنشاء server.properties
+  const propertiesPath = path.join(serverPath, "server.properties");
+  if (!fs.existsSync(propertiesPath)) {
+    fs.writeFileSync(
+      propertiesPath,
+`motd=${serverName}
+online-mode=${!cracked}
+max-players=20
+enable-command-block=true`
+    );
   }
 
   const newServer = {
@@ -83,8 +104,6 @@ const createServer = (req, res) => {
 
   res.status(201).json({
     message: "Server created successfully!",
-    folderCreated,
-    serverPath,
     server: newServer
   });
 };
