@@ -35,6 +35,16 @@ const getServers = (req, res) => {
   res.json(servers);
 };
 
+// عرض مجلدات السيرفرات
+const getServerFolders = (req, res) => {
+  if (!fs.existsSync(serversFolder)) {
+    return res.json([]);
+  }
+
+  const folders = fs.readdirSync(serversFolder);
+  res.json(folders);
+};
+
 // إنشاء سيرفر جديد
 const createServer = (req, res) => {
   const servers = loadServers();
@@ -45,14 +55,17 @@ const createServer = (req, res) => {
 
   // إنشاء مجلد servers إذا لم يكن موجوداً
   if (!fs.existsSync(serversFolder)) {
-    fs.mkdirSync(serversFolder);
+    fs.mkdirSync(serversFolder, { recursive: true });
   }
 
   // إنشاء مجلد خاص بالسيرفر
   const serverPath = path.join(serversFolder, serverName);
 
+  let folderCreated = false;
+
   if (!fs.existsSync(serverPath)) {
-    fs.mkdirSync(serverPath);
+    fs.mkdirSync(serverPath, { recursive: true });
+    folderCreated = true;
   }
 
   const newServer = {
@@ -70,23 +83,15 @@ const createServer = (req, res) => {
 
   res.status(201).json({
     message: "Server created successfully!",
+    folderCreated,
+    serverPath,
     server: newServer
   });
-};
-
-// عرض مجلدات السيرفرات الموجودة على Railway
-const getServerFolders = (req, res) => {
-  if (!fs.existsSync(serversFolder)) {
-    return res.json([]);
-  }
-
-  const folders = fs.readdirSync(serversFolder);
-  res.json(folders);
 };
 
 module.exports = {
   getApiInfo,
   getServers,
-  createServer,
   getServerFolders,
+  createServer,
 };
