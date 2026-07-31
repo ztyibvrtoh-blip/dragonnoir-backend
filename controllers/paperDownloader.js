@@ -1,11 +1,14 @@
 const axios = require("axios");
 
-async function testPaperAPI(version) {
+async function testPaperAPI() {
   const query = `
-    query GetVersionBuild {
+    query LatestStableBuildDownloadURL {
       project(key: "paper") {
         key
-        versions(filterBy: { keys: ["${version}"] }) {
+        versions(
+          first: 1
+          orderBy: { direction: DESC }
+        ) {
           edges {
             node {
               key
