@@ -1,38 +1,26 @@
 const axios = require("axios");
 
-async function testPaperAPI(version = "1.21.1") {
+async function testPaperAPI(version = "26.2") {
   try {
-    // الحصول على قائمة الـ Builds للإصدار
+    // الحصول على آخر Build
     const buildsResponse = await axios.get(
-      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds`
+      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds/latest`
     );
 
-    const builds = buildsResponse.data.builds;
-
-    if (!builds || builds.length === 0) {
-      throw new Error(`لم يتم العثور على Builds للإصدار ${version}`);
-    }
-
-    // آخر Build
-    const latestBuild = builds[builds.length - 1];
-
-    // معلومات الـ Build
-    const buildResponse = await axios.get(
-      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds/${latestBuild}`
-    );
-
-    const download = buildResponse.data.downloads["server:default"];
+    const build = buildsResponse.data;
 
     return {
       version,
-      build: latestBuild,
+      build: build.id,
       download: {
-        name: download.name,
-        url: download.url
+        name: build.downloads["server:default"].name,
+        url: build.downloads["server:default"].url
       }
     };
+
   } catch (err) {
-    throw new Error(`Paper API Error: ${err.message}`);
+    console.error(err.response?.data || err.message);
+    throw new Error("Paper API Error");
   }
 }
 
