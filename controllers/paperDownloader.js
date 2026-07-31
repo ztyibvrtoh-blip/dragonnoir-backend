@@ -5,11 +5,17 @@ async function testPaperAPI() {
     query LatestStableBuildDownloadURL {
       project(key: "paper") {
         key
-        versions(first: 1, orderBy: {direction: DESC}) {
+        versions(first: 1, orderBy: { direction: DESC }) {
           edges {
             node {
               key
-              builds(filterBy: { channel: STABLE }, first: 1, orderBy: { direction: DESC }) {
+              builds(
+                filterBy: {
+                  channels: [STABLE]
+                }
+                first: 1
+                orderBy: { direction: DESC }
+              ) {
                 edges {
                   node {
                     number
