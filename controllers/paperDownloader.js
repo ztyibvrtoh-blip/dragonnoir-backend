@@ -1,23 +1,46 @@
 const axios = require("axios");
 
-async function getLatestPaperBuild(version = "1.21.1") {
-  try {
-    const response = await axios.get(
-      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds`,
-      {
-        headers: {
-          "User-Agent": "DRAGONNOIR/1.0"
+async function testPaperAPI() {
+  const query = `
+    query LatestStableBuildDownloadURL {
+      project(key: "paper") {
+        key
+        versions(first: 1, orderBy: {direction: DESC}) {
+          edges {
+            node {
+              key
+              builds(filterBy: { channel: STABLE }, first: 1, orderBy: { direction: DESC }) {
+                edges {
+                  node {
+                    number
+                    download(key: "server:default") {
+                      name
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
-    );
+    }
+  `;
 
-    return response.data;
-  } catch (err) {
-    console.error("Paper Downloader Error:", err.message);
-    return null;
-  }
+  const response = await axios.post(
+    "https://fill.papermc.io/graphql",
+    { query },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "DRAGONNOIR/1.0"
+      }
+    }
+  );
+
+  return response.data;
 }
 
 module.exports = {
-  getLatestPaperBuild
+  testPaperAPI,
 };
