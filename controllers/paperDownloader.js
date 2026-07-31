@@ -1,53 +1,39 @@
 const axios = require("axios");
 
-async function testPaperAPI() {
-  const query = `
-    query LatestStableBuildDownloadURL {
-      project(key: "paper") {
-        key
-        versions(
-          first: 1
-          orderBy: { direction: DESC }
-        ) {
-          edges {
-            node {
-              key
-              builds(
-                filterBy: {
-                  channels: [STABLE]
-                }
-                first: 1
-                orderBy: { direction: DESC }
-              ) {
-                edges {
-                  node {
-                    number
-                    download(key: "server:default") {
-                      name
-                      url
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
+async function testPaperAPI(version = "1.21.1") {
+  try {
+    // الحصول على قائمة الـ Builds للإصدار
+    const buildsResponse = await axios.get(
+      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds`
+    );
 
-  const response = await axios.post(
-    "https://fill.papermc.io/graphql",
-    { query },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "DRAGONNOIR/1.0"
-      }
-    }
-  );
+    const builds = buildsResponse.data.builds;
 
-  return response.data;
+    if (!builds || builds.length === 0) {
+      throw new Error(`لم يتم العثور على Builds للإصدار ${version}`);
+    }
+
+    // آخر Build
+    const latestBuild = builds[builds.length - 1];
+
+    // معلومات الـ Build
+    const buildResponse = await axios.get(
+      `https://fill.papermc.io/v3/projects/paper/versions/${version}/builds/${latestBuild}`
+    );
+
+    const download = buildResponse.data.downloads["server:default"];
+
+    return {
+      version,
+      build: latestBuild,
+      download: {
+        name: download.name,
+        url: download.url
+      }
+    };
+  } catch (err) {
+    throw new Error(`Paper API Error: ${err.message}`);
+  }
 }
 
 module.exports = {
