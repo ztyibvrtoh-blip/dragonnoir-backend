@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
-// 1. أضف هذا السطر مع بقية الـ require
 const { testPaperAPI } = require("./paperDownloader");
 
 const dataFile = path.join(__dirname, "../data/servers.json");
@@ -55,7 +54,6 @@ const createServer = async (req, res) => {
 
   const serverName = name || `Server ${servers.length + 1}`;
 
-  // إنشاء مجلد servers
   if (!fs.existsSync(serversFolder)) {
     fs.mkdirSync(serversFolder, { recursive: true });
   }
@@ -66,7 +64,6 @@ const createServer = async (req, res) => {
     fs.mkdirSync(serverPath, { recursive: true });
   }
 
-  // إنشاء المجلدات الأساسية
   ["world", "plugins", "logs"].forEach(folder => {
     const folderPath = path.join(serverPath, folder);
 
@@ -75,13 +72,11 @@ const createServer = async (req, res) => {
     }
   });
 
-  // إنشاء eula.txt
   const eulaPath = path.join(serverPath, "eula.txt");
   if (!fs.existsSync(eulaPath)) {
     fs.writeFileSync(eulaPath, "eula=true");
   }
 
-  // إنشاء server.properties
   const propertiesPath = path.join(serverPath, "server.properties");
   if (!fs.existsSync(propertiesPath)) {
     fs.writeFileSync(
@@ -93,13 +88,12 @@ enable-command-block=true`
     );
   }
 
-  // 2. تم حذف الجزء القديم بالكامل واستبداله بهذا الجزء بناءً على الصور
-  // جلب معلومات PaperMC عبر GraphQL
+  // جلب معلومات PaperMC باستخدام الإصدار الذي يختاره المستخدم
   let paperInfo = null;
 
   try {
-    paperInfo = await testPaperAPI();
-    
+    paperInfo = await testPaperAPI(version || "1.21.1");
+
     console.log("Paper API:");
     console.log(JSON.stringify(paperInfo, null, 2));
   } catch (err) {
