@@ -7,14 +7,13 @@ const { testPaperAPI } = require("./paperDownloader");
 const dataFile = path.join(__dirname, "../data/servers.json");
 const serversFolder = path.join(__dirname, "../servers");
 
-// قراءة السيرفرات من الملف
+// قراءة السيرفرات
 const loadServers = () => {
   if (!fs.existsSync(dataFile)) {
     fs.writeFileSync(dataFile, "[]");
   }
 
-  const data = fs.readFileSync(dataFile, "utf8");
-  return JSON.parse(data);
+  return JSON.parse(fs.readFileSync(dataFile, "utf8"));
 };
 
 // حفظ السيرفرات
@@ -37,7 +36,7 @@ const getServers = (req, res) => {
   res.json(loadServers());
 };
 
-// عرض مجلدات السيرفرات
+// عرض المجلدات
 const getServerFolders = (req, res) => {
   if (!fs.existsSync(serversFolder)) {
     return res.json([]);
@@ -72,30 +71,44 @@ const createServer = async (req, res) => {
     }
   });
 
-  const eulaPath = path.join(serverPath, "eula.txt");
-  if (!fs.existsSync(eulaPath)) {
-    fs.writeFileSync(eulaPath, "eula=true");
-  }
+  fs.writeFileSync(path.join(serverPath, "eula.txt"), "eula=true");
 
-  const propertiesPath = path.join(serverPath, "server.properties");
-  if (!fs.existsSync(propertiesPath)) {
-    fs.writeFileSync(
-      propertiesPath,
+  fs.writeFileSync(
+    path.join(serverPath, "server.properties"),
 `motd=${serverName}
 online-mode=${!cracked}
 max-players=20
 enable-command-block=true`
-    );
-  }
+  );
 
-  // جلب معلومات PaperMC باستخدام الإصدار الذي يختاره المستخدم
   let paperInfo = null;
 
   try {
-    paperInfo = await testPaperAPI(version || "1.21.1");
+    paperInfo = await testPaperAPI(version || "26.2");
 
     console.log("Paper API:");
     console.log(JSON.stringify(paperInfo, null, 2));
+
+    // تحميل paper.jar
+    const jarPath = path.join(serverPath, "paper.jar");
+
+    const response = await axios({
+      method: "GET",
+      url: paperInfo.download.url,
+      responseType: "stream"
+    });
+
+    await new Promise((resolve, reject) => {
+      const writer = fs.createWriteStream(jarPath);
+
+      response.data.pipe(writer);
+
+      writer.on("finish", resolve);
+      writer.on("error", reject);
+    });
+
+    console.log("paper.jar downloaded successfully!");
+
   } catch (err) {
     console.log("PaperMC API Error:", err.message);
   }
@@ -103,7 +116,7 @@ enable-command-block=true`
   const newServer = {
     id: servers.length + 1,
     name: serverName,
-    version: version || "1.21.1",
+    version: version || "26.2",
     type: type || "Java",
     cracked: cracked ?? false,
     status: "offline",
