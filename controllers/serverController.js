@@ -2,6 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
+// 1. أضف هذا السطر مع بقية الـ require
+const { testPaperAPI } = require("./paperDownloader");
+
 const dataFile = path.join(__dirname, "../data/servers.json");
 const serversFolder = path.join(__dirname, "../servers");
 
@@ -90,17 +93,17 @@ enable-command-block=true`
     );
   }
 
-  // جلب معلومات الإصدار من PaperMC
+  // 2. تم حذف الجزء القديم بالكامل واستبداله بهذا الجزء بناءً على الصور
+  // جلب معلومات PaperMC عبر GraphQL
   let paperInfo = null;
 
   try {
-    const response = await axios.get(
-      `https://api.papermc.io/v2/projects/paper/versions/${version || "1.21.1"}`
-    );
-
-    paperInfo = response.data;
+    paperInfo = await testPaperAPI();
+    
+    console.log("Paper API:");
+    console.log(JSON.stringify(paperInfo, null, 2));
   } catch (err) {
-    console.log("PaperMC API Error:", err.message);
+    console.log("PaperMC GraphQL Error:", err.message);
   }
 
   const newServer = {
