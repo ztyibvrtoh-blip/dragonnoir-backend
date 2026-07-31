@@ -97,7 +97,7 @@ enable-command-block=true`
     console.log("Paper API:");
     console.log(JSON.stringify(paperInfo, null, 2));
   } catch (err) {
-    console.log("PaperMC GraphQL Error:", err.message);
+    console.log("PaperMC API Error:", err.message);
   }
 
   const newServer = {
