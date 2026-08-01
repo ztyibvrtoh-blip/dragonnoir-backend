@@ -8,16 +8,21 @@ const {
   getServerFolders,
 } = require("../controllers/serverController");
 
+const {
+  startServer,
+  stopServer,
+} = require("../controllers/serverProcessController");
+
 // الصفحة الرئيسية
 router.get("/", getApiInfo);
 
-// عرض جميع السيرفرات
+// السيرفرات
 router.get("/servers", getServers);
-
-// عرض مجلدات السيرفرات
 router.get("/servers/folders", getServerFolders);
-
-// إنشاء سيرفر جديد
 router.post("/servers", createServer);
+
+// تشغيل وإيقاف السيرفر
+router.post("/servers/start", startServer);
+router.post("/servers/stop", stopServer);
 
 module.exports = router;
