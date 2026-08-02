@@ -2,12 +2,17 @@ const express = require("express");
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello Railway");
-});
+// قراءة بيانات JSON القادمة من الموقع
+app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port " + PORT);
+// استيراد المسارات
+const routes = require("./routes");
+
+// استخدام المسارات
+app.use("/", routes);
+
+app.listen(PORT, () => {
+  console.log(`DRAGONNOIR Backend started on port ${PORT}`);
 });
