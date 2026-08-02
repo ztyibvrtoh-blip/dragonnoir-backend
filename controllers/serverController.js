@@ -45,6 +45,28 @@ const getServerFolders = (req, res) => {
   res.json(fs.readdirSync(serversFolder));
 };
 
+// عرض ملفات سيرفر معين
+const getServerFiles = (req, res) => {
+  const { name } = req.params;
+
+  const serverPath = path.join(serversFolder, name);
+
+  if (!fs.existsSync(serverPath)) {
+    return res.status(404).json({
+      success: false,
+      message: "Server not found."
+    });
+  }
+
+  const files = fs.readdirSync(serverPath);
+
+  res.json({
+    success: true,
+    server: name,
+    files
+  });
+};
+
 // إنشاء سيرفر
 const createServer = async (req, res) => {
   const servers = loadServers();
@@ -86,7 +108,7 @@ max-players=20
 enable-command-block=true`
   );
 
-  // إنشاء ملف تشغيل السيرفر
+  // start.bat
   fs.writeFileSync(
     path.join(serverPath, "start.bat"),
 `@echo off
@@ -102,7 +124,6 @@ pause`
     console.log("Paper API:");
     console.log(JSON.stringify(paperInfo, null, 2));
 
-    // تحميل paper.jar
     const jarPath = path.join(serverPath, "paper.jar");
 
     const response = await axios({
@@ -150,5 +171,6 @@ module.exports = {
   getApiInfo,
   getServers,
   getServerFolders,
+  getServerFiles,
   createServer,
 };
