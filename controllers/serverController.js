@@ -3,23 +3,9 @@ const path = require("path");
 const axios = require("axios");
 
 const { testPaperAPI } = require("./paperDownloader");
+const { getServers, saveServers } = require("../database");
 
-const dataFile = path.join(__dirname, "../data/servers.json");
 const serversFolder = path.join(__dirname, "../servers");
-
-// قراءة السيرفرات
-const loadServers = () => {
-  if (!fs.existsSync(dataFile)) {
-    fs.writeFileSync(dataFile, "[]");
-  }
-
-  return JSON.parse(fs.readFileSync(dataFile, "utf8"));
-};
-
-// حفظ السيرفرات
-const saveServers = (servers) => {
-  fs.writeFileSync(dataFile, JSON.stringify(servers, null, 2));
-};
 
 // معلومات الـ API
 const getApiInfo = (req, res) => {
@@ -32,8 +18,8 @@ const getApiInfo = (req, res) => {
 };
 
 // عرض السيرفرات
-const getServers = (req, res) => {
-  res.json(loadServers());
+const getServersList = (req, res) => {
+  res.json(getServers());
 };
 
 // عرض المجلدات
@@ -45,7 +31,7 @@ const getServerFolders = (req, res) => {
   res.json(fs.readdirSync(serversFolder));
 };
 
-// عرض ملفات سيرفر معين
+// عرض ملفات سيرفر
 const getServerFiles = (req, res) => {
   const { name } = req.params;
 
@@ -58,18 +44,16 @@ const getServerFiles = (req, res) => {
     });
   }
 
-  const files = fs.readdirSync(serverPath);
-
   res.json({
     success: true,
     server: name,
-    files
+    files: fs.readdirSync(serverPath)
   });
 };
 
 // إنشاء سيرفر
 const createServer = async (req, res) => {
-  const servers = loadServers();
+  const servers = getServers();
 
   const { name, version, type, cracked } = req.body;
 
@@ -81,25 +65,19 @@ const createServer = async (req, res) => {
 
   const serverPath = path.join(serversFolder, serverName);
 
-  if (!fs.existsSync(serverPath)) {
-    fs.mkdirSync(serverPath, { recursive: true });
-  }
+  fs.mkdirSync(serverPath, { recursive: true });
 
   ["world", "plugins", "logs"].forEach(folder => {
-    const folderPath = path.join(serverPath, folder);
-
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
-    }
+    fs.mkdirSync(path.join(serverPath, folder), {
+      recursive: true,
+    });
   });
 
-  // eula
   fs.writeFileSync(
     path.join(serverPath, "eula.txt"),
     "eula=true"
   );
 
-  // server.properties
   fs.writeFileSync(
     path.join(serverPath, "server.properties"),
 `motd=${serverName}
@@ -108,7 +86,6 @@ max-players=20
 enable-command-block=true`
   );
 
-  // start.bat
   fs.writeFileSync(
     path.join(serverPath, "start.bat"),
 `@echo off
@@ -121,15 +98,12 @@ pause`
   try {
     paperInfo = await testPaperAPI(version || "26.2");
 
-    console.log("Paper API:");
-    console.log(JSON.stringify(paperInfo, null, 2));
-
     const jarPath = path.join(serverPath, "paper.jar");
 
     const response = await axios({
       method: "GET",
       url: paperInfo.download.url,
-      responseType: "stream"
+      responseType: "stream",
     });
 
     await new Promise((resolve, reject) => {
@@ -141,10 +115,9 @@ pause`
       writer.on("error", reject);
     });
 
-    console.log("paper.jar downloaded successfully!");
-
+    console.log("paper.jar downloaded.");
   } catch (err) {
-    console.log("PaperMC API Error:", err.message);
+    console.log("Paper Error:", err.message);
   }
 
   const newServer = {
@@ -154,13 +127,16 @@ pause`
     type: type || "Java",
     cracked: cracked ?? false,
     status: "offline",
-    players: 0
+    players: 0,
+    createdAt: new Date().toISOString()
   };
 
   servers.push(newServer);
+
   saveServers(servers);
 
   res.status(201).json({
+    success: true,
     message: "Server created successfully!",
     paper: paperInfo,
     server: newServer
@@ -169,7 +145,7 @@ pause`
 
 module.exports = {
   getApiInfo,
-  getServers,
+  getServers: getServersList,
   getServerFolders,
   getServerFiles,
   createServer,
