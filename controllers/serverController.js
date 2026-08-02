@@ -71,14 +71,27 @@ const createServer = async (req, res) => {
     }
   });
 
-  fs.writeFileSync(path.join(serverPath, "eula.txt"), "eula=true");
+  // eula
+  fs.writeFileSync(
+    path.join(serverPath, "eula.txt"),
+    "eula=true"
+  );
 
+  // server.properties
   fs.writeFileSync(
     path.join(serverPath, "server.properties"),
 `motd=${serverName}
 online-mode=${!cracked}
 max-players=20
 enable-command-block=true`
+  );
+
+  // إنشاء ملف تشغيل السيرفر
+  fs.writeFileSync(
+    path.join(serverPath, "start.bat"),
+`@echo off
+java -Xms1G -Xmx1G -jar paper.jar nogui
+pause`
   );
 
   let paperInfo = null;
