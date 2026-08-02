@@ -4,25 +4,24 @@ const router = express.Router();
 const {
   getApiInfo,
   getServers,
-  createServer,
   getServerFolders,
+  getServerFiles,
+  createServer,
 } = require("../controllers/serverController");
-
-const {
-  startServer,
-  stopServer,
-} = require("../controllers/serverProcessController");
 
 // الصفحة الرئيسية
 router.get("/", getApiInfo);
 
-// السيرفرات
+// عرض جميع السيرفرات
 router.get("/servers", getServers);
-router.get("/servers/folders", getServerFolders);
-router.post("/servers", createServer);
 
-// تشغيل وإيقاف السيرفر
-router.post("/servers/start", startServer);
-router.post("/servers/stop", stopServer);
+// عرض مجلدات السيرفرات
+router.get("/servers/folders", getServerFolders);
+
+// عرض ملفات سيرفر معين
+router.get("/servers/:name/files", getServerFiles);
+
+// إنشاء سيرفر جديد
+router.post("/servers", createServer);
 
 module.exports = router;
