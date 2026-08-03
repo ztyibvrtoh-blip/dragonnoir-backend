@@ -126,8 +126,9 @@ pause`
     version: version || "26.2",
     type: type || "Java",
     cracked: cracked ?? false,
-    status: "offline",
+    status: "starting",
     players: 0,
+    pid: null,
     createdAt: new Date().toISOString()
   };
 
